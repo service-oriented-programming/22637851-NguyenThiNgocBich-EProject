@@ -12,7 +12,7 @@ app.use("/auth", (req, res) => {
   });
 });
 
-app.use("/api/products", (req, res) => {
+app.use("/products", (req, res) => {
   proxy.web(req, res, {
     target: "http://product:3001",
     changeOrigin: true,

@@ -3,11 +3,12 @@ version: '3'
 services:
   mongo:    
     image: mongo:6
-    container_name: eproject-phase-1-mongo-1
     ports:
       - "37017:27017"
     networks:
       - app-network
+    volumes:
+      - mongo_data:/data/db
       
   auth:
     build: ./auth
@@ -20,6 +21,8 @@ services:
     build: ./product
     env_file:
       - ./product/.env
+    ports:
+      - "3001:3001"
     depends_on:
       - rabbitmq
     networks:
@@ -47,7 +50,6 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"  
@@ -60,3 +62,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  mongo_data:

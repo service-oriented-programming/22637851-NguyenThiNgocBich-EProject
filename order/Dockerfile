@@ -1,4 +1,3 @@
-# Dựa trên image Node.js chính thức
 FROM node:18-alpine
 
 WORKDIR /app

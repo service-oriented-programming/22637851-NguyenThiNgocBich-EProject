@@ -6,4 +6,3 @@ module.exports = {
     rabbitMQQueue: 'orders',
     port: 3002
 };
-  
