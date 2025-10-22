@@ -1,4 +1,5 @@
 const Product = require("../models/product");
+// const Order = require("../../../order/src/models/order");
 const messageBroker = require("../utils/messageBroker");
 const uuid = require('uuid');
 
@@ -103,6 +104,24 @@ class ProductController {
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Server error" });
+    }
+  }
+
+  async getInvoiceById(req, res, next) {
+    try {
+      const orderId = req.params.id;
+      console.log("orderId: ", orderId);
+      
+      const order = await Order.findById({orderId}).populate('products');
+
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      res.status(200).json(order);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: error.message });
     }
   }
 }

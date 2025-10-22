@@ -1,13 +1,50 @@
+# Microservices Sales System
+
+A complete microservices-based sales system with authentication, product management, and order processing capabilities. Built with Node.js, Express, MongoDB, RabbitMQ, and Docker.
+
+## 🚀 Quick Start
+
+**Get started in 5 minutes!** See [QUICK_START.md](QUICK_START.md)
+
+```bash
+# Start all services
+docker-compose up --build
+
+# Import Postman collection and start testing!
+```
+
 ## Overview
 
 This project is a microservices-based system designed for a service-oriented programming course term project. It consists of several independent services that communicate with each other, typically via HTTP and message brokers. The main services are:
 
 - **API Gateway**: Entry point for all client requests, routes traffic to appropriate services.
 - **Auth Service**: Handles user authentication, registration, and JWT token management.
-- **Product Service**: Manages product catalog, CRUD operations for products.
-- **Order Service**: Handles order creation, management, and user order history.
+- **Product Service**: Manages product catalog, CRUD operations for products, and order placement.
+- **Order Service**: Handles order creation, management, and user order history via message queue.
 
 Each service is containerized with Docker and can be orchestrated using Docker Compose.
+
+## 📚 Documentation
+
+- **[QUICK_START.md](QUICK_START.md)** - Get up and running in 5 minutes
+- **[API_ENDPOINTS.md](API_ENDPOINTS.md)** - Complete API reference and documentation
+- **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - Step-by-step testing instructions with Postman
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture and design diagrams
+- **[CI_CD_SETUP.md](CI_CD_SETUP.md)** - CI/CD pipeline configuration and usage
+- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Complete project implementation details
+- **[Postman_Collection.json](Postman_Collection.json)** - Ready-to-import Postman collection
+
+## ✨ Features
+
+- ✅ User registration and authentication with JWT
+- ✅ Product catalog management (Create, Read, Update, Delete)
+- ✅ Order placement with message queue processing
+- ✅ Microservices architecture with API Gateway
+- ✅ Docker containerization for all services
+- ✅ CI/CD pipeline with GitHub Actions
+- ✅ Automated testing
+- ✅ MongoDB for data persistence
+- ✅ RabbitMQ for asynchronous messaging
 
 ---
 
@@ -114,12 +151,14 @@ This will build and start all services in separate containers.
 
 ### 4. Accessing the Services
 
-- **API Gateway**: http://localhost:3000 (or configured port)
-- **Auth Service**: http://localhost:4000
-- **Product Service**: http://localhost:5000
-- **Order Service**: http://localhost:6000
+- **API Gateway**: http://localhost:3003
+- **Auth Service**: http://localhost:3000 (internal)
+- **Product Service**: http://localhost:3001
+- **Order Service**: http://localhost:3002 (internal)
+- **MongoDB**: mongodb://localhost:37017
+- **RabbitMQ Management**: http://localhost:15672 (guest/guest)
 
-All requests should go through the API Gateway.
+**Note**: All API requests should go through the API Gateway at port 3003.
 
 ---
 
