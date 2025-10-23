@@ -19,12 +19,12 @@ class App {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("MongoDB connected");
+    console.log(`MongoDB [${config.mongoURI}] connected`);
   }
 
   async disconnectDB() {
     await mongoose.disconnect();
-    console.log("MongoDB disconnected");
+    console.log(`MongoDB [${config.mongoURI}] disconnected`);
   }
 
   setMiddlewares() {
@@ -41,15 +41,15 @@ class App {
   }
 
   start() {
-    this.server = this.app.listen(3001, () =>
-      console.log("Server started on port 3001")
+    this.server = this.app.listen(config.port, () =>
+      console.log(`Server started on port ${config.port}`)
     );
   }
 
   async stop() {
     await mongoose.disconnect();
     this.server.close();
-    console.log("Server stopped");
+    console.log(`Server stopped on port ${config.port}`);
   }
 }
 

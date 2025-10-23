@@ -1,5 +1,4 @@
 const Product = require("../models/product");
-// const Order = require("../../../order/src/models/order");
 const messageBroker = require("../utils/messageBroker");
 const uuid = require('uuid');
 
@@ -12,7 +11,6 @@ class ProductController {
     this.createOrder = this.createOrder.bind(this);
     this.getOrderStatus = this.getOrderStatus.bind(this);
     this.ordersMap = new Map();
-
   }
 
   async createProduct(req, res, next) {
@@ -107,18 +105,49 @@ class ProductController {
     }
   }
 
-  async getInvoiceById(req, res, next) {
+     async getInvoiceByOrderId(req, res, next) {
     try {
-      const orderId = req.params.id;
-      console.log("orderId: ", orderId);
-      
-      const order = await Order.findById({orderId}).populate('products');
+      const token = req.headers.authorization;
+      if (!token) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { orderId } = req.params;
+
+      if (!orderId) {
+        return res.status(400).json({ message: "Order ID is required" });
+      }
+
+      const order = this.ordersMap.get(orderId);
 
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
 
-      res.status(200).json(order);
+      if (order.status !== "completed") {
+        return res.status(400).json({
+          message: "Order is not completed yet",
+          status: order.status,
+        });
+      }
+
+      console.log("Order found:", order);
+
+      const invoice = {
+        orderId,
+        username: order.username || order.user,
+        products: order.products.map((product) => ({
+          id: product._id,
+          name: product.name,
+          price: product.price,
+          description: product.description,
+        })),
+        totalPrice: order.totalPrice,
+        createdAt: order.createdAt || new Date().toISOString(),
+        status: order.status,
+      };
+
+      res.status(200).json(invoice);
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: error.message });
