@@ -24,8 +24,9 @@ jobs:
 
       # Step 3: Login DockerHub
       - name: Login to DockerHub
-        shell: bash
+        shell: powershell
         run: |
+          echo "Logging into DockerHub..."
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       # Step 4: Generate env file for Docker Compose
@@ -74,5 +75,5 @@ jobs:
 
       # Step 8: Push image lên DockerHub
       - name: Push images to DockerHub
-        shell: bash
+        shell: powershell
         run: docker compose -p eproject push
