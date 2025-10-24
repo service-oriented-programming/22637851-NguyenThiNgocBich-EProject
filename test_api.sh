@@ -1,38 +1,29 @@
 #!/bin/bash
 set -e
 
-echo "Start check API Health..."
+echo "Start checking API Health..."
 
-# Base URL
+# Base URL of API Gateway
 API_GATEWAY_URL="http://localhost:${API_GATEWAY_PORT:-3003}"
 
-echo "Check API Gateway: $API_GATEWAY_URL/api/health"
-if curl -s --fail "$API_GATEWAY_URL/api/health"; then
-  echo "API Gateway is up and healthy!"
-else
-  echo "API Gateway is not healthy!"
-  exit 1
-fi
+# Function to check 1 endpoint
+check_health() {
+  local name=$1
+  local url=$2
 
-echo "Check Auth Service..."
-if curl -s --fail "$API_GATEWAY_URL/api/auth/health"; then
-  echo "Auth service is up and healthy!"
-else
-  echo "Auth service is not healthy!"
-fi
+  echo "Checking $name at $url"
+  if curl -s --fail "$url" > /dev/null; then
+    echo "$name is healthy!"
+  else
+    echo "$name is NOT healthy!"
+    exit 1
+  fi
+}
 
-echo "Check Product Service..."
-if curl -s --fail "$API_GATEWAY_URL/api/products/health"; then
-  echo "Product service is up and healthy!"
-else
-  echo "Product service is not healthy!"
-fi
+# Call each service through API Gateway
+check_health "API Gateway" "$API_GATEWAY_URL/api/health"
+check_health "Auth Service" "$API_GATEWAY_URL/api/auth/health"
+check_health "Product Service" "$API_GATEWAY_URL/api/products/health"
+check_health "Order Service" "$API_GATEWAY_URL/api/orders/health"
 
-echo "Check Order Service..."
-if curl -s --fail "$API_GATEWAY_URL/api/orders/health"; then
-  echo "Order service is up and healthy!"
-else
-  echo "Order service is not healthy!"
-fi
-
-echo "All services are up and healthy!"
+echo "All services are UP and HEALTHY!"
