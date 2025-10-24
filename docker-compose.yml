@@ -1,0 +1,100 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    restart: unless-stopped
+    ports:
+      - "37017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - app-network
+
+  auth-service:
+    image: ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
+    container_name: auth-service
+    env_file:
+      - docker-env
+    restart: always
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+    networks:
+      - app-network
+
+  product-service:
+    image: ${{ secrets.DOCKERHUB_USERNAME }}/product-service:latest
+    container_name: product-service
+    env_file:
+      - docker-env
+    restart: always
+    ports:
+      - "${PRODUCT_PORT}:${PRODUCT_PORT}"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+    networks:
+      - app-network
+
+  order-service:
+    image: ${{ secrets.DOCKERHUB_USERNAME }}/order-service:latest
+    container_name: order-service
+    env_file:
+      - docker-env
+    restart: always
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+    networks:
+      - app-network
+
+  api-gateway:
+    image: ${{ secrets.DOCKERHUB_USERNAME }}/api-gateway:latest
+    container_name: api-gateway
+    env_file:
+      - docker-env
+    ports:
+      - "${API_GATEWAY_PORT}:${API_GATEWAY_PORT}"
+    restart: always
+    depends_on:
+      auth-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo_data:

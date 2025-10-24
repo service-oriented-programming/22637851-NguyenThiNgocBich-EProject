@@ -6,7 +6,6 @@ require("dotenv").config();
 
 chai.use(chaiHttp);
 
-
 describe("Products", () => {
   let app;
 

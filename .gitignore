@@ -16,6 +16,10 @@ jspm_packages/
 .env
 .env.*
 !.env.example
+.docker-env
+
+# docker-compose
+docker-compose-local.yaml
 
 # DS Store
 .DS_Store
