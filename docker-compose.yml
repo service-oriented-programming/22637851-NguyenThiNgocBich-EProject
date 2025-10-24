@@ -31,7 +31,7 @@ services:
       - app-network
 
   auth-service:
-    image: ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
+    image: ${DOCKERHUB_USERNAME}/auth-service:latest
     container_name: auth-service
     env_file:
       - docker-env
@@ -45,7 +45,7 @@ services:
       - app-network
 
   product-service:
-    image: ${{ secrets.DOCKERHUB_USERNAME }}/product-service:latest
+    image: ${DOCKERHUB_USERNAME}/product-service:latest
     container_name: product-service
     env_file:
       - docker-env
@@ -61,7 +61,7 @@ services:
       - app-network
 
   order-service:
-    image: ${{ secrets.DOCKERHUB_USERNAME }}/order-service:latest
+    image: ${DOCKERHUB_USERNAME}/order-service:latest
     container_name: order-service
     env_file:
       - docker-env
@@ -75,7 +75,7 @@ services:
       - app-network
 
   api-gateway:
-    image: ${{ secrets.DOCKERHUB_USERNAME }}/api-gateway:latest
+    image: ${DOCKERHUB_USERNAME}/api-gateway:latest
     container_name: api-gateway
     env_file:
       - docker-env

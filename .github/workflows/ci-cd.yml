@@ -51,6 +51,9 @@ jobs:
       # Step 5: Build & run services
       - name: Build and start containers
         shell: powershell
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
           docker compose -p eproject down -v --remove-orphans
           docker compose -p eproject up -d --build
