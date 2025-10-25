@@ -1,9 +1,14 @@
+version: '3.9'
+
 services:
   mongo:
     image: mongo:6
+    container_name: mongo
     restart: unless-stopped
     ports:
       - "37017:27017"
+    volumes:
+      - mongo_data:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -14,6 +19,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
+    container_name: rabbitmq
     restart: unless-stopped
     ports:
       - "5672:5672"
@@ -34,14 +40,16 @@ services:
       context: ./auth
       dockerfile: Dockerfile
     container_name: auth-service
+    env_file:
+      - ./.docker-env
     ports:
       - "${AUTH_PORT}:${AUTH_PORT}"
     restart: always
     depends_on:
+      mongo:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      mongo:
-        condition: service_started
     networks:
       - app-network
 
@@ -50,14 +58,16 @@ services:
       context: ./product
       dockerfile: Dockerfile
     container_name: product-service
+    env_file:
+      - ./.docker-env
     ports:
       - "${PRODUCT_PORT}:${PRODUCT_PORT}"
     restart: always
     depends_on:
+      mongo:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      mongo:
-        condition: service_started
     networks:
       - app-network
 
@@ -66,14 +76,16 @@ services:
       context: ./order
       dockerfile: Dockerfile
     container_name: order-service
+    env_file:
+      - ./.docker-env
     ports:
       - "${ORDER_PORT}:${ORDER_PORT}"
     restart: always
     depends_on:
+      mongo:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      mongo:
-        condition: service_started
     networks:
       - app-network
 
@@ -82,19 +94,24 @@ services:
       context: ./api-gateway
       dockerfile: Dockerfile
     container_name: api-gateway
+    env_file:
+      - ./.docker-env
     ports:
       - "${API_GATEWAY_PORT}:${API_GATEWAY_PORT}"
     restart: always
     depends_on:
       auth-service:
-        condition: service_started
+        condition: service_healthy
       product-service:
-        condition: service_started
+        condition: service_healthy
       order-service:
-        condition: service_started
+        condition: service_healthy
     networks:
       - app-network
 
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  mongo_data:
