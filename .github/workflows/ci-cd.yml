@@ -45,7 +45,7 @@ jobs:
           MONGODB_PRODUCT_URI=${{ vars.MONGODB_PRODUCT_URI }}
           MONGODB_ORDER_URI=${{ vars.MONGODB_ORDER_URI }}
           MONGODB_AUTH_URI=${{ vars.MONGODB_AUTH_URI }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_SECRET=${{ vars.JWT_SECRET }}
           AUTH_SERVICE_URI=${{ vars.AUTH_SERVICE_URI }}
           RABBITMQ_URI=${{ vars.RABBITMQ_URI }}
           RABBITMQ_QUEUE=${{ vars.RABBITMQ_QUEUE }}
@@ -57,12 +57,32 @@ jobs:
           $envFile | Out-File -Encoding ascii -FilePath docker-env
           Write-Host "Env file generated!"
 
+      - name: Cleanup old containers
+        run: |
+          docker compose -p eproject down -v --remove-orphans || true
+          docker system prune -f
+
+      - name: Free ports if in use
+        shell: powershell
+        run: |
+          Write-Host "Checking and freeing ports (3001–3005)..."
+          $ports = @(3001, 3002, 3003, 3004, 3005)
+          foreach ($p in $ports) {
+            $pid = (Get-NetTCPConnection -LocalPort $p -ErrorAction SilentlyContinue).OwningProcess
+            if ($pid) {
+              Write-Host "Port $p in use by PID $pid. Killing..."
+              Stop-Process -Id $pid -Force
+            } else {
+              Write-Host "Port $p is free."
+            }
+          }
+
       # Step 6: Build & run services
       - name: Build and start services
         shell: powershell
         run: |
           docker compose --env-file docker-env -p eproject down -v --remove-orphans
-          docker compose --env-file docker-env -p eproject up -d --build
+          docker compose --env-file docker-env -p eproject up -d --build --no-cache
           Write-Host "Services built and started!"
       
       # Step 6.5: Debug Docker logs
@@ -94,7 +114,7 @@ jobs:
               exit 0
             } catch {
               Write-Host "Retry $i: API not ready yet..."
-              Start-Sleep -Seconds 10
+              Start-Sleep -Seconds 15
             }
           }
           Write-Host "API health check failed after multiple attempts."
