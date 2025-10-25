@@ -118,7 +118,7 @@ jobs:
           Write-Host "Waiting for API Gateway to become healthy..."
           for ($i = 0; $i -lt 6; $i++) {
             try {
-              $response = Invoke-RestMethod -Uri "http://localhost:3003/health" -TimeoutSec 10
+              $response = Invoke-RestMethod -Uri "http://localhost:3010/health" -TimeoutSec 10
               Write-Host "API Healthy: $($response)"
               exit 0
             } catch {
