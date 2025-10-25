@@ -56,7 +56,19 @@ jobs:
           "@
           $envFile | Out-File -Encoding ascii -FilePath docker-env
           Write-Host "Env file generated!"
-          echo ${{ secrets.DOCKERHUB_USERNAME }}
+          echo $DOCKERHUB_USERNAME
+          echo $DOCKERHUB_TOKEN
+          echo $MONGODB_PRODUCT_URI
+          echo $MONGODB_ORDER_URI
+          echo $MONGODB_AUTH_URI
+          echo $JWT_SECRET
+          echo $AUTH_SERVICE_URL
+          echo $RABBITMQ_URI
+          echo $RABBITMQ_QUEUE
+          echo $PRODUCT_PORT
+          echo $ORDER_PORT
+          echo $AUTH_PORT
+          echo $API_GATEWAY_PORT
 
       # Step 6: Build & run services
       - name: Build and start services
