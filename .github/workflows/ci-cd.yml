@@ -45,8 +45,8 @@ jobs:
           MONGODB_PRODUCT_URI=${{ vars.MONGODB_PRODUCT_URI }}
           MONGODB_ORDER_URI=${{ vars.MONGODB_ORDER_URI }}
           MONGODB_AUTH_URI=${{ vars.MONGODB_AUTH_URI }}
-          JWT_SECRET=${{ vars.JWT_SECRET }}
-          AUTH_SERVICE_URL=${{ vars.AUTH_SERVICE_URL }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          AUTH_SERVICE_URI=${{ vars.AUTH_SERVICE_URI }}
           RABBITMQ_URI=${{ vars.RABBITMQ_URI }}
           RABBITMQ_QUEUE=${{ vars.RABBITMQ_QUEUE }}
           PRODUCT_PORT=${{ vars.PRODUCT_PORT }}
