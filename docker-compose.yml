@@ -31,7 +31,7 @@ services:
 
   auth-service:
     build:
-      context: ./auth-service
+      context: ./auth
       dockerfile: Dockerfile
     container_name: auth-service
     ports:
@@ -47,7 +47,7 @@ services:
 
   product-service:
     build:
-      context: ./product-service
+      context: ./product
       dockerfile: Dockerfile
     container_name: product-service
     ports:
@@ -63,7 +63,7 @@ services:
 
   order-service:
     build:
-      context: ./order-service
+      context: ./order
       dockerfile: Dockerfile
     container_name: order-service
     ports:
