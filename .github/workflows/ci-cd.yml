@@ -86,7 +86,12 @@ jobs:
       - name: Build and start services
         shell: powershell
         run: |
-          docker compose --env-file docker-env -p eproject up -d --build --no-cache
+          Write-Host "Building images without cache..."
+          docker compose --env-file docker-env -p eproject build --no-cache
+
+          Write-Host "Starting services..."
+          docker compose --env-file docker-env -p eproject up -d
+
           Write-Host "Services built and started!"
       
       # Step 6.5: Debug Docker logs
