@@ -28,7 +28,7 @@ app.use("/orders", (req, res) => {
   });
 });
 
-const port = process.env.PORT || 3003;
+const port = process.env.API_GATEWAY_PORT || 3003;
 app.listen(port, () => {
   console.log(`API Gateway listening on port ${port}`);
 });
