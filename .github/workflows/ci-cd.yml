@@ -46,7 +46,6 @@ jobs:
           MONGODB_ORDER_URI=${{ vars.MONGODB_ORDER_URI }}
           MONGODB_AUTH_URI=${{ vars.MONGODB_AUTH_URI }}
           JWT_SECRET=${{ vars.JWT_SECRET }}
-          AUTH_SERVICE_URI=${{ vars.AUTH_SERVICE_URI }}
           RABBITMQ_URI=${{ vars.RABBITMQ_URI }}
           RABBITMQ_QUEUE=${{ vars.RABBITMQ_QUEUE }}
           PRODUCT_PORT=${{ vars.PRODUCT_PORT }}
@@ -116,13 +115,13 @@ jobs:
         shell: powershell
         run: |
           Write-Host "Waiting for API Gateway to become healthy..."
-          for ($i = 0; $i -lt 6; $i++) {
+          for (${i} = 0; ${i} -lt 6; ${i}++) {
             try {
               $response = Invoke-RestMethod -Uri "http://localhost:3010/health" -TimeoutSec 10
               Write-Host "API Healthy: $($response)"
               exit 0
             } catch {
-              Write-Host "Retry $i: API not ready yet..."
+              Write-Host "Retry ${i}: API not ready yet..."
               Start-Sleep -Seconds 15
             }
           }
