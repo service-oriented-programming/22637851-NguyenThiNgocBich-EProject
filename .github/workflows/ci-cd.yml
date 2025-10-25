@@ -58,8 +58,13 @@ jobs:
           Write-Host "Env file generated!"
 
       - name: Cleanup old containers
+        shell: powershell
         run: |
-          docker compose -p eproject down -v --remove-orphans || true
+          try {
+            docker compose -p eproject down -v --remove-orphans
+          } catch {
+            Write-Host "No containers to remove. Continue..."
+          }
           docker system prune -f
 
       - name: Free ports if in use
@@ -81,7 +86,6 @@ jobs:
       - name: Build and start services
         shell: powershell
         run: |
-          docker compose --env-file docker-env -p eproject down -v --remove-orphans
           docker compose --env-file docker-env -p eproject up -d --build --no-cache
           Write-Host "Services built and started!"
       
