@@ -1,18 +1,19 @@
 services:
   mongo:
     image: mongo:6
-    container_name: mongo
     restart: unless-stopped
     ports:
       - "37017:27017"
-    volumes:
-      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq
     restart: unless-stopped
     ports:
       - "5672:5672"
@@ -29,8 +30,10 @@ services:
       - app-network
 
   auth-service:
-    image: ${DOCKERHUB_USERNAME}/auth-service:latest
-    container_name: eproject-auth
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
     env_file:
       - docker-env
     ports:
@@ -45,8 +48,10 @@ services:
       - app-network
 
   product-service:
-    image: ${DOCKERHUB_USERNAME}/product-service:latest
-    container_name: eproject-product
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    container_name: product-service
     env_file:
       - docker-env
     ports:
@@ -61,8 +66,10 @@ services:
       - app-network
 
   order-service:
-    image: ${DOCKERHUB_USERNAME}/order-service:latest
-    container_name: eproject-order
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
     env_file:
       - docker-env
     ports:
@@ -77,8 +84,10 @@ services:
       - app-network
 
   api-gateway:
-    image: ${DOCKERHUB_USERNAME}/api-gateway:latest
-    container_name: eproject-gateway
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
     env_file:
       - docker-env
     ports:
@@ -97,6 +106,3 @@ services:
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  mongo_data:
