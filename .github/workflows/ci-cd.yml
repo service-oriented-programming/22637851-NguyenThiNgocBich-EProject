@@ -49,10 +49,10 @@ jobs:
           AUTH_SERVICE_URL=${{ vars.AUTH_SERVICE_URL }}
           RABBITMQ_URI=${{ vars.RABBITMQ_URI }}
           RABBITMQ_QUEUE=${{ vars.RABBITMQ_QUEUE }}
-          PRODUCT_PORT=${{ secrets.PRODUCT_PORT }}
-          ORDER_PORT=${{ secrets.ORDER_PORT }}
-          AUTH_PORT=${{ secrets.AUTH_PORT }}
-          API_GATEWAY_PORT=${{ secrets.API_GATEWAY_PORT }}
+          PRODUCT_PORT=${{ vars.PRODUCT_PORT }}
+          ORDER_PORT=${{ vars.ORDER_PORT }}
+          AUTH_PORT=${{ vars.AUTH_PORT }}
+          API_GATEWAY_PORT=${{ vars.API_GATEWAY_PORT }}
           "@
           $envFile | Out-File -Encoding ascii -FilePath docker-env
           Write-Host "Env file generated!"
@@ -61,8 +61,8 @@ jobs:
       - name: Build and start services
         shell: powershell
         run: |
-          docker compose -p eproject down -v --remove-orphans
-          docker compose -p eproject up -d --build
+          docker compose --env-file docker-env -p eproject down -v --remove-orphans
+          docker compose --env-file docker-env -p eproject up -d --build
           Write-Host "Services built and started!"
 
       # Step 7: Wait for MongoDB & RabbitMQ
