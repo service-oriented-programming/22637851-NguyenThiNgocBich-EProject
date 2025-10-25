@@ -76,7 +76,15 @@ jobs:
       # Step 8: Test API (Health Check)
       - name: Test API Health
         shell: powershell
-        run: bash ./test_api.sh
+        run: |
+          Write-Host "Checking API health..."
+          try {
+            $response = Invoke-RestMethod -Uri "http://localhost:${{ vars.API_GATEWAY_PORT }}/health" -TimeoutSec 10
+            Write-Host "API Health: $($response)"
+          } catch {
+            Write-Host "API health check failed!"
+            exit 1
+          }
 
       # Step 9: Push image lên DockerHub
       - name: Push images to DockerHub
