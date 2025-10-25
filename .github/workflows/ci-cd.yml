@@ -70,7 +70,7 @@ jobs:
       - name: Free occupied ports
         shell: powershell
         run: |
-          Write-Host "Checking and freeing ports (3001-3005)..."
+          Write-Host "Checking and freeing ports..."
           $ports = @(3001, 3002, 3003, 3004, 3005)
           foreach ($p in $ports) {
             $pid = (Get-NetTCPConnection -LocalPort $p -ErrorAction SilentlyContinue).OwningProcess
