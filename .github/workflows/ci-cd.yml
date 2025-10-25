@@ -73,10 +73,10 @@ jobs:
           Write-Host "Checking and freeing ports..."
           $ports = @(3001, 3002, 3003, 3004, 3005)
           foreach ($p in $ports) {
-            $pid = (Get-NetTCPConnection -LocalPort $p -ErrorAction SilentlyContinue).OwningProcess
-            if ($pid) {
-              Write-Host "Port $p in use by PID $pid. Killing..."
-              Stop-Process -Id $pid -Force
+            $portPid = (Get-NetTCPConnection -LocalPort $p -ErrorAction SilentlyContinue).OwningProcess
+            if ($portPid) {
+              Write-Host "Port $p in use by PID $portPid. Killing..."
+              Stop-Process -Id $portPid -Force
             } else {
               Write-Host "Port $p is free."
             }
