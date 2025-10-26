@@ -149,4 +149,4 @@ jobs:
       # Step 11: Push image to DockerHub
       - name: Push images to DockerHub
         shell: powershell
-        run: docker compose -p eproject push
+        run: docker compose --env-file docker-env -p eproject push

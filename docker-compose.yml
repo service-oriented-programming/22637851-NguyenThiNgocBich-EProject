@@ -37,6 +37,7 @@ services:
     build:
       context: ./auth
       dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/auth-service:latest
     container_name: auth-service
     env_file:
       - ./docker-env
@@ -61,6 +62,7 @@ services:
     build:
       context: ./product
       dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/product-service:latest
     container_name: product-service
     env_file:
       - ./docker-env
@@ -85,6 +87,7 @@ services:
     build:
       context: ./order
       dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/order-service:latest
     container_name: order-service
     env_file:
       - ./docker-env
@@ -109,6 +112,7 @@ services:
     build:
       context: ./api-gateway
       dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/api-gateway:latest
     container_name: api-gateway
     env_file:
       - ./docker-env
