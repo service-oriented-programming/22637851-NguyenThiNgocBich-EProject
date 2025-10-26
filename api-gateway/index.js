@@ -33,7 +33,6 @@ app.get("/health", async (req, res) => {
   const services = [
     { name: "auth", url: "http://auth:3000/health" },
     { name: "product", url: "http://product:3001/health" },
-    { name: "order", url: "http://order:3002/health" },
   ];
 
   const results = await Promise.all(

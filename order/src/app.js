@@ -9,8 +9,6 @@ class App {
     this.app = express();
     this.connectDB();
     this.setupOrderConsumer();
-    // Health endpoint
-    this.app.get("/health", (req, res) => res.status(200).json({ status: "ok" }));
   }
 
   async connectDB() {

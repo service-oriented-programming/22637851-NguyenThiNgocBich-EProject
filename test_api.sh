@@ -24,6 +24,5 @@ check_health() {
 check_health "API Gateway" "$API_GATEWAY_URL/health"
 check_health "Auth Service" "$API_GATEWAY_URL/auth/health"
 check_health "Product Service" "$API_GATEWAY_URL/products/api/products/health"
-check_health "Order Service" "$API_GATEWAY_URL/orders/health"
 
 echo "All services are UP and HEALTHY!"

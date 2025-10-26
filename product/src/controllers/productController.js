@@ -10,6 +10,7 @@ class ProductController {
   constructor() {
     this.createOrder = this.createOrder.bind(this);
     this.getOrderStatus = this.getOrderStatus.bind(this);
+    this.getInvoiceByOrderId = this.getInvoiceByOrderId.bind(this);
     this.ordersMap = new Map();
   }
 
@@ -61,16 +62,23 @@ class ProductController {
       messageBroker.consumeMessage("products", (data) => {
         const orderData = JSON.parse(JSON.stringify(data));
         const { orderId } = orderData;
-        const order = this.ordersMap.get(orderId);
+        let order = this.ordersMap.get(orderId);
         if (order) {
-          this.ordersMap.set(orderId, { ...order, ...orderData, status: 'completed' });
+          const originalProducts = order.products;
+          order = {
+            ...order,
+            ...orderData,
+            products: originalProducts,
+            status: "completed",
+          };
+          this.ordersMap.set(orderId, order);
           console.log("Updated order:", order);
         }
       });
   
       let order = this.ordersMap.get(orderId);
-      while (order.status !== 'completed') {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      while (order.status !== "completed") {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         order = this.ordersMap.get(orderId);
       }
   
@@ -85,7 +93,7 @@ class ProductController {
     const { orderId } = req.params;
     const order = this.ordersMap.get(orderId);
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return res.status(404).json({ message: "Order not found" });
     }
     return res.status(200).json(order);
   }
@@ -105,7 +113,7 @@ class ProductController {
     }
   }
 
-     async getInvoiceByOrderId(req, res, next) {
+  async getInvoiceByOrderId(req, res, next) {
     try {
       const token = req.headers.authorization;
       if (!token) {
@@ -113,12 +121,14 @@ class ProductController {
       }
 
       const { orderId } = req.params;
+      console.log("orderId", orderId);
 
       if (!orderId) {
         return res.status(400).json({ message: "Order ID is required" });
       }
 
       const order = this.ordersMap.get(orderId);
+      console.log("order", order);
 
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
@@ -130,8 +140,6 @@ class ProductController {
           status: order.status,
         });
       }
-
-      console.log("Order found:", order);
 
       const invoice = {
         orderId,
