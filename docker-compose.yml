@@ -72,7 +72,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${PRODUCT_PORT}/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:${PRODUCT_PORT}/api/products/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -90,10 +90,8 @@ services:
       - "${ORDER_PORT}:${ORDER_PORT}"
     restart: always
     depends_on:
-      mongo:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+      - mongo
+      - rabbitmq
     networks:
       - app-network
 
@@ -113,7 +111,7 @@ services:
       product-service:
         condition: service_healthy
       order-service:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${API_GATEWAY_PORT}/health || exit 1"]
       interval: 10s
