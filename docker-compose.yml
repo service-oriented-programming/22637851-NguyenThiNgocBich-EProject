@@ -51,8 +51,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${AUTH_PORT}/health || exit 1"]
       interval: 10s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      retries: 10
+      start_period: 10s
     networks:
       - app-network
 
@@ -74,8 +75,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${PRODUCT_PORT}/api/products/health || exit 1"]
       interval: 10s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      retries: 10
+      start_period: 10s
     networks:
       - app-network
 
