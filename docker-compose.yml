@@ -92,8 +92,16 @@ services:
       - "${ORDER_PORT}:${ORDER_PORT}"
     restart: always
     depends_on:
-      - mongo
-      - rabbitmq
+      mongo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${ORDER_PORT}/api/orders/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
     networks:
       - app-network
 

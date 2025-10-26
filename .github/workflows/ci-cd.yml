@@ -56,16 +56,6 @@ jobs:
           $envFile | Out-File -Encoding ascii -FilePath docker-env
           Write-Host "Env file generated!"
 
-      - name: Cleanup old containers
-        shell: powershell
-        run: |
-          try {
-            docker compose -p eproject down -v --remove-orphans
-          } catch {
-            Write-Host "No containers to remove. Continue..."
-          }
-          docker system prune -f
-
       - name: Free occupied ports
         shell: powershell
         run: |
