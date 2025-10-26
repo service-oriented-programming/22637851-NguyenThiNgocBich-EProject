@@ -8,6 +8,7 @@ require("dotenv").config();
 class App {
   constructor() {
     this.app = express();
+    this.registerHealthCheck();
     this.connectDB();
     this.setMiddlewares();
     this.setRoutes();
@@ -32,11 +33,26 @@ class App {
     this.app.use(express.urlencoded({ extended: false }));
   }
 
+  registerHealthCheck() {
+    this.app.get("/health", (req, res) => {
+      const mongoConnected = mongoose.connection.readyState === 1;
+      res.status(mongoConnected ? 200 : 503).json({
+        status: mongoConnected ? "ok" : "degraded",
+        mongoConnected,
+      });
+    });
+  }
+
   setRoutes() {
     this.app.use("/api/products", productsRouter);
   }
 
   setupMessageBroker() {
+    if (process.env.DISABLE_BROKER === "true" || process.env.NODE_ENV === "test") {
+      console.log("Message broker disabled for current environment");
+      return;
+    }
+
     MessageBroker.connect();
   }
 

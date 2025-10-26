@@ -1,57 +1,83 @@
 const express = require("express");
 const httpProxy = require("http-proxy");
+const axios = require("axios");
 
 const proxy = httpProxy.createProxyServer();
 const app = express();
 
-app.use("/auth", (req, res) => {
-  proxy.web(req, res, {
-    target: "http://auth:3000",
-    changeOrigin: true,
-    ignorePath: false,
-  });
+const resolveServiceBaseUrl = (prefix, defaultHost, defaultPort) => {
+  if (process.env[`${prefix}_URL`]) {
+    return process.env[`${prefix}_URL`].replace(/\/$/, "");
+  }
+
+  const host = process.env[`${prefix}_HOST`] || defaultHost;
+  const port = process.env[`${prefix}_PORT`] || defaultPort;
+
+  return `http://${host}:${port}`;
+};
+
+const services = {
+  auth: resolveServiceBaseUrl("AUTH_SERVICE", "auth-service", 3000),
+  product: resolveServiceBaseUrl("PRODUCT_SERVICE", "product-service", 3001),
+  order: resolveServiceBaseUrl("ORDER_SERVICE", "order-service", 3002),
+};
+
+const proxyToService = (serviceName) => (req, res) => {
+  proxy.web(
+    req,
+    res,
+    {
+      target: services[serviceName],
+      changeOrigin: true,
+      autoRewrite: true,
+    },
+    (err) => {
+      console.error(`Proxy error for ${serviceName}:`, err.message);
+      if (!res.headersSent) {
+        res.status(502).json({ message: "Service temporarily unavailable" });
+      }
+    }
+  );
+};
+
+proxy.on("error", (err, req, res) => {
+  console.error("Global proxy error:", err.message);
+  if (!res.headersSent) {
+    res.status(502).json({ message: "Service temporarily unavailable" });
+  }
 });
 
-app.use("/products", (req, res) => {
-  proxy.web(req, res, {
-    target: "http://product:3001",
-    changeOrigin: true,
-    ignorePath: false,
-  });
-});
-
-app.use("/orders", (req, res) => {
-  proxy.web(req, res, {
-    target: "http://order:3002",
-    changeOrigin: true,
-    ignorePath: false,
-  });
-});
+app.use("/auth", proxyToService("auth"));
+app.use("/products", proxyToService("product"));
+app.use("/orders", proxyToService("order"));
 
 // Healthcheck endpoint
 app.get("/health", async (req, res) => {
-  const services = [
-    { name: "auth", url: "http://auth:3000/health" },
-    { name: "product", url: "http://product:3001/health" },
+  const upstreams = [
+    { name: "auth", url: `${services.auth}/health` },
+    { name: "product", url: `${services.product}/health` },
+    { name: "order", url: `${services.order}/health` },
   ];
 
   const results = await Promise.all(
-    services.map(async (s) => {
+    upstreams.map(async ({ name, url }) => {
       try {
-        await axios.get(s.url);
-        return { [s.name]: "healthy" };
+        await axios.get(url, { timeout: 5000 });
+        return { name, status: "healthy" };
       } catch (err) {
-        return { [s.name]: "unhealthy" };
+        console.error(`Health check failed for ${name}:`, err.message);
+        return { name, status: "unhealthy" };
       }
     })
   );
 
-  const unhealthy = results.filter(r => Object.values(r)[0] === "unhealthy");
+  const unhealthy = results.filter((service) => service.status !== "healthy");
+
   if (unhealthy.length > 0) {
-    return res.status(500).json({ status: "unhealthy", details: results });
+    return res.status(502).json({ status: "unhealthy", services: results });
   }
 
-  res.json({ status: "healthy", details: results });
+  res.json({ status: "healthy", services: results });
 });
 
 const port = process.env.API_GATEWAY_PORT || 3003;
