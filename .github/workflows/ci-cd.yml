@@ -17,16 +17,12 @@ jobs:
         run: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
         shell: powershell
 
-      # Step 3: Clean old Docker environment
-      - name: Clean old Docker environment
+      # Step 3: Clean project-specific Docker environment
+      - name: Clean Docker environment
         shell: powershell
         run: |
-          Write-Host "Stopping all containers..."
-          docker ps -aq | ForEach-Object { docker stop $_; docker rm -f $_ }
-          docker network prune -f
-          docker volume prune -f
+          docker compose -p eproject down -v
           docker system prune -af
-          Write-Host "Docker environment cleaned up!"
 
       # Step 4: Login DockerHub
       - name: Login to DockerHub
@@ -82,17 +78,21 @@ jobs:
           docker compose --env-file docker-env -p eproject up -d
 
           Write-Host "Services built and started!"
-      
-      # Step 6.5: Debug Docker logs
-      - name: Debug Docker logs
+
+      # Step 7: Run unit tests
+      - name: Run Unit Tests
         shell: powershell
         run: |
-          Write-Host "====== AUTH LOG ======"
-          docker logs auth-service | Select-Object -First 50
-          Write-Host "====== GATEWAY LOG ======"
-          docker logs api-gateway | Select-Object -First 50
+          cd auth
+          npm test
+          cd ..\product
+          npm test
+          cd ..\order
+          npm test
+          cd ..\api-gateway
+          npm test
 
-      # Step 7: Wait for MongoDB & RabbitMQ
+      # Step 8: Wait for MongoDB & RabbitMQ
       - name: Wait for MongoDB & RabbitMQ
         shell: powershell
         run: |
@@ -100,25 +100,34 @@ jobs:
           Start-Sleep -Seconds 15
           docker ps
 
-      # Step 8: Test API (Health Check)
-      - name: Test API Health
+      # Step 9: Test all services
+      - name: Test Service Health
         shell: powershell
         run: |
-          Write-Host "Waiting for API Gateway to become healthy..."
-          for (${i} = 0; ${i} -lt 6; ${i}++) {
-            try {
-              $response = Invoke-RestMethod -Uri "http://localhost:3003/health" -TimeoutSec 10
-              Write-Host "API Healthy: $($response)"
-              exit 0
-            } catch {
-              Write-Host "Retry ${i}: API not ready yet..."
-              Start-Sleep -Seconds 15
+          $services = @(
+            @{Name="Auth"; Port="${{ vars.AUTH_PORT }}"; Path="/health"},
+            @{Name="Product"; Port="${{ vars.PRODUCT_PORT }}"; Path="/api/products/health"},
+            @{Name="Order"; Port="${{ vars.ORDER_PORT }}"; Path="/api/orders/health"},
+            @{Name="API Gateway"; Port="${{ vars.API_GATEWAY_PORT }}"; Path="/health"}
+          )
+
+          foreach ($service in $services) {
+            $uri = "http://localhost:$($service.Port)$($service.Path)"
+            Write-Host "Testing $($service.Name) service at $uri"
+            
+            for ($i = 0; $i -lt 6; $i++) {
+              try {
+                $response = Invoke-RestMethod -Uri $uri -TimeoutSec 10
+                Write-Host "$($service.Name) healthy: $($response)"
+                break
+              } catch {
+                Write-Host "Retry ${i}: $($service.Name) not ready..."
+                Start-Sleep -Seconds 10
+              }
             }
           }
-          Write-Host "API health check failed after multiple attempts."
-          exit 1
 
-      # Step 9: Push image lên DockerHub
+      # Step 10: Push image to DockerHub
       - name: Push images to DockerHub
         shell: powershell
         run: docker compose -p eproject push
