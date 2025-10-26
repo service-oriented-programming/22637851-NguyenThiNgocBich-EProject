@@ -78,7 +78,7 @@ jobs:
           docker compose --env-file docker-env -p eproject up -d
 
           Write-Host "Services built and started!"
-
+      
       # Step 7: Run unit tests
       - name: Run Unit Tests
         shell: powershell
