@@ -67,7 +67,39 @@ jobs:
             }
           }
 
-      # Step 6: Build & run services
+      # Step 6: Install dependencies for all services
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          Write-Host "Installing dependencies for all services..."
+          cd auth
+          npm install
+          cd ..\product
+          npm install
+          cd ..\order
+          npm install
+          cd ..\api-gateway
+          npm install
+          cd ..
+          Write-Host "Dependencies installed!"
+
+      # Step 7: Run unit tests (before Docker build)
+      - name: Run Unit Tests
+        shell: powershell
+        run: |
+          Write-Host "Running unit tests..."
+          cd auth
+          npm test
+          cd ..\product
+          npm test
+          cd ..\order
+          npm test
+          cd ..\api-gateway
+          npm test
+          cd ..
+          Write-Host "All unit tests passed!"
+
+      # Step 8: Build & run services
       - name: Build and start services
         shell: powershell
         run: |
@@ -78,21 +110,8 @@ jobs:
           docker compose --env-file docker-env -p eproject up -d
 
           Write-Host "Services built and started!"
-      
-      # Step 7: Run unit tests
-      - name: Run Unit Tests
-        shell: powershell
-        run: |
-          cd auth
-          npm test
-          cd ..\product
-          npm test
-          cd ..\order
-          npm test
-          cd ..\api-gateway
-          npm test
 
-      # Step 8: Wait for MongoDB & RabbitMQ
+      # Step 9: Wait for MongoDB & RabbitMQ
       - name: Wait for MongoDB & RabbitMQ
         shell: powershell
         run: |
@@ -100,14 +119,14 @@ jobs:
           Start-Sleep -Seconds 15
           docker ps
 
-      # Step 9: Test all services
+      # Step 10: Test all services
       - name: Test Service Health
         shell: powershell
         run: |
           $services = @(
             @{Name="Auth"; Port="${{ vars.AUTH_PORT }}"; Path="/health"},
-            @{Name="Product"; Port="${{ vars.PRODUCT_PORT }}"; Path="/api/products/health"},
-            @{Name="Order"; Port="${{ vars.ORDER_PORT }}"; Path="/api/orders/health"},
+            @{Name="Product"; Port="${{ vars.PRODUCT_PORT }}"; Path="/health"},
+            @{Name="Order"; Port="${{ vars.ORDER_PORT }}"; Path="/health"},
             @{Name="API Gateway"; Port="${{ vars.API_GATEWAY_PORT }}"; Path="/health"}
           )
 
@@ -127,7 +146,7 @@ jobs:
             }
           }
 
-      # Step 10: Push image to DockerHub
+      # Step 11: Push image to DockerHub
       - name: Push images to DockerHub
         shell: powershell
         run: docker compose -p eproject push

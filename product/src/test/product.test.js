@@ -8,19 +8,21 @@ chai.use(chaiHttp);
 
 describe("Products", () => {
   let app;
+  let authToken;
 
   before(async () => {
+    // Disable message broker for unit testing
+    process.env.DISABLE_BROKER = "true";
+    process.env.NODE_ENV = "test";
+    
     app = new App();
-    await Promise.all([app.connectDB(), app.setupMessageBroker()])
-
-    // Authenticate with the auth microservice to get a token
-    const authRes = await chai
-      .request("http://localhost:3000")
-      .post("/login")
-      .send({ username: process.env.LOGIN_TEST_USER, password: process.env.LOGIN_TEST_PASSWORD });
-
-    authToken = authRes.body.token;
-    console.log(authToken);
+    await app.connectDB();
+    
+    // Generate a test token directly instead of calling auth service
+    const jwt = require("jsonwebtoken");
+    const testUser = { username: "testuser", _id: "test123" };
+    authToken = jwt.sign(testUser, process.env.JWT_SECRET || "test-secret", { expiresIn: "1h" });
+    
     app.start();
   });
 
