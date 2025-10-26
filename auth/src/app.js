@@ -8,17 +8,24 @@ class App {
   constructor() {
     this.app = express();
     this.authController = new AuthController();
+    this.dbConnected = false;
     this.connectDB();
     this.setMiddlewares();
     this.setRoutes();
   }
 
   async connectDB() {
-    await mongoose.connect(config.mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log("MongoDB connected");
+    try {
+      await mongoose.connect(config.mongoURI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      this.dbConnected = true;
+      console.log("MongoDB connected");
+    } catch (error) {
+      console.error("MongoDB connection error:", error.message);
+      this.dbConnected = false;
+    }
   }
 
   async disconnectDB() {
@@ -36,7 +43,13 @@ class App {
     this.app.post("/register", (req, res) => this.authController.register(req, res));
     this.app.get("/dashboard", authMiddleware, (req, res) => res.json({ message: "Welcome to dashboard" }));
     this.app.get('/health', (req, res) => {
-      res.status(200).json({ status: 'ok' });
+      const mongoConnected = mongoose.connection.readyState === 1;
+      const healthy = mongoConnected;
+      
+      res.status(healthy ? 200 : 503).json({
+        status: healthy ? 'ok' : 'degraded',
+        mongoConnected
+      });
     });
   }
 
