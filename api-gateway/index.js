@@ -28,6 +28,33 @@ app.use("/orders", (req, res) => {
   });
 });
 
+// Healthcheck endpoint
+app.get("/health", async (req, res) => {
+  const services = [
+    { name: "auth", url: "http://auth:3000/health" },
+    { name: "product", url: "http://product:3001/health" },
+    { name: "order", url: "http://order:3002/health" },
+  ];
+
+  const results = await Promise.all(
+    services.map(async (s) => {
+      try {
+        await axios.get(s.url);
+        return { [s.name]: "healthy" };
+      } catch (err) {
+        return { [s.name]: "unhealthy" };
+      }
+    })
+  );
+
+  const unhealthy = results.filter(r => Object.values(r)[0] === "unhealthy");
+  if (unhealthy.length > 0) {
+    return res.status(500).json({ status: "unhealthy", details: results });
+  }
+
+  res.json({ status: "healthy", details: results });
+});
+
 const port = process.env.API_GATEWAY_PORT || 3003;
 app.listen(port, () => {
   console.log(`API Gateway listening on port ${port}`);

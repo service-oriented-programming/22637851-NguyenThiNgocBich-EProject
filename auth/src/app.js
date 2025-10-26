@@ -35,10 +35,13 @@ class App {
     this.app.post("/login", (req, res) => this.authController.login(req, res));
     this.app.post("/register", (req, res) => this.authController.register(req, res));
     this.app.get("/dashboard", authMiddleware, (req, res) => res.json({ message: "Welcome to dashboard" }));
+    this.app.get('/health', (req, res) => {
+      res.status(200).json({ status: 'ok' });
+    });
   }
 
   start() {
-    this.server = this.app.listen(3000, () => console.log("Server started on port 3000"));
+    this.server = this.app.listen(config.port, () => console.log(`Server started on port ${config.port}`));
   }
 
   async stop() {
