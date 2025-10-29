@@ -1,3 +1,5 @@
+version: '3.9'
+
 services:
   mongo:
     image: mongo:6
@@ -7,11 +9,6 @@ services:
       - "37017:27017"
     volumes:
       - mongo_data:/data/db
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.runCommand({ping: 1}) && db.getCollectionNames().length >= 0"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - app-network
 
@@ -20,8 +17,8 @@ services:
     container_name: rabbitmq
     restart: unless-stopped
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5672:5672"    
+      - "15672:15672"   
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -33,104 +30,63 @@ services:
     networks:
       - app-network
 
-  auth-service:
-    build:
-      context: ./auth
-      dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME}/auth-service:latest
+  auth:
+    build: ./auth
     container_name: auth-service
     env_file:
-      - ./docker-env
-    ports:
-      - "${AUTH_PORT}:${AUTH_PORT}"
-    restart: always
+      - ./auth/.env
+    restart: unless-stopped
     depends_on:
-      mongo:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${AUTH_PORT}/health || exit 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 10
-      start_period: 10s
+      mongo:
+        condition: service_started
     networks:
       - app-network
 
-  product-service:
-    build:
-      context: ./product
-      dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME}/product-service:latest
+  product:
+    build: ./product
     container_name: product-service
     env_file:
-      - ./docker-env
+      - ./product/.env
+    restart: unless-stopped
     ports:
-      - "${PRODUCT_PORT}:${PRODUCT_PORT}"
-    restart: always
+      - "3001:3001"
     depends_on:
-      mongo:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${PRODUCT_PORT}/health || exit 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 10
-      start_period: 10s
+      mongo:
+        condition: service_started
     networks:
       - app-network
 
-  order-service:
-    build:
-      context: ./order
-      dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME}/order-service:latest
+  order:
+    build: ./order
     container_name: order-service
     env_file:
-      - ./docker-env
-    ports:
-      - "${ORDER_PORT}:${ORDER_PORT}"
-    restart: always
+      - ./order/.env
+    restart: unless-stopped
     depends_on:
-      mongo:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${ORDER_PORT}/health || exit 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 10
-      start_period: 10s
+      mongo:
+        condition: service_started
     networks:
       - app-network
 
   api-gateway:
-    build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME}/api-gateway:latest
+    build: ./api-gateway
     container_name: api-gateway
-    env_file:
-      - ./docker-env
     ports:
-      - "${API_GATEWAY_PORT}:${API_GATEWAY_PORT}"
-    restart: always
+      - "3003:3003"
+    restart: unless-stopped
     depends_on:
-      auth-service:
-        condition: service_healthy
-      product-service:
-        condition: service_healthy
-      order-service:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${API_GATEWAY_PORT}/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      auth:
+        condition: service_started
+      product:
+        condition: service_started
+      order:
+        condition: service_started
     networks:
       - app-network
 
