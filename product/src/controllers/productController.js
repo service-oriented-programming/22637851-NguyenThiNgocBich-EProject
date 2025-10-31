@@ -112,52 +112,6 @@ class ProductController {
       res.status(500).json({ message: "Server error" });
     }
   }
-
-  async getInvoiceByOrderId(req, res, next) {
-    try {
-      const token = req.headers.authorization;
-      if (!token) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      const { orderId } = req.params;
-
-      if (!orderId) {
-        return res.status(400).json({ message: "Order ID is required" });
-      }
-
-      const order = this.ordersMap.get(orderId);
-      if (!order) {
-        return res.status(404).json({ message: "Order not found" });
-      }
-
-      if (order.status !== "completed") {
-        return res.status(400).json({
-          message: "Order is not completed yet",
-          status: order.status,
-        });
-      }
-
-      const invoice = {
-        orderId,
-        username: order.username || order.user,
-        products: order.products.map((product) => ({
-          id: product._id,
-          name: product.name,
-          price: product.price,
-          description: product.description,
-        })),
-        totalPrice: order.totalPrice,
-        createdAt: order.createdAt || new Date().toISOString(),
-        status: order.status,
-      };
-
-      res.status(200).json(invoice);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: error.message });
-    }
-  }
 }
 
 module.exports = ProductController;
