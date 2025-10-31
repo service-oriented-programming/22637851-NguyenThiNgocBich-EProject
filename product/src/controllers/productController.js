@@ -121,15 +121,12 @@ class ProductController {
       }
 
       const { orderId } = req.params;
-      console.log("orderId", orderId);
 
       if (!orderId) {
         return res.status(400).json({ message: "Order ID is required" });
       }
 
       const order = this.ordersMap.get(orderId);
-      console.log("order", order);
-
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
