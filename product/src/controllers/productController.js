@@ -10,6 +10,7 @@ class ProductController {
   constructor() {
     this.createOrder = this.createOrder.bind(this);
     this.getOrderStatus = this.getOrderStatus.bind(this);
+    this.getInvoiceByOrderId = this.getInvoiceByOrderId.bind(this);
     this.ordersMap = new Map();
   }
 
@@ -106,6 +107,48 @@ class ProductController {
       const products = await Product.find({});
 
       res.status(200).json(products);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+
+  async getInvoiceByOrderId(req, res, next) {
+    try {
+      const token = req.headers.authorization;
+      if (!token) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { orderId } = req.params;
+
+      if (!orderId) {
+        return res.status(401).json({ message: "Order id is required" });
+      }
+
+      const order = this.ordersMap.get(orderId);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      if (order.status !== "completed") {
+        return res.status(400).json({
+          message: "Order is not complete yet",
+          status: order.status
+        })
+      };
+
+      const invoice = {
+        orderId,
+        products: order.products.map((product) => ({
+          name: product.name,
+          price: product.price,
+          description: product.description
+        })),
+        totalPrice: order.totalPrice
+      }
+
+      res.status(200).json(invoice);
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Server error" });
